@@ -1,4 +1,4 @@
-# RNG-toolkit
+# PRNG-toolkit
 A web-based tool to generate, test, and visualize pseudo-random numbers using various algorithms and statistical tests.
 RNG-Suite is a comprehensive, single-file web application designed for generating, analyzing, and visualizing pseudo-random numbers. It provides a user-friendly interface to explore different generation algorithms, perform rigorous statistical tests on the output, and understand the quality of the generated sequences. This tool is perfect for educational purposes, simulations, and for anyone interested in the practical aspects of random number generation.
 <img width="1452" height="959" alt="image" src="https://github.com/user-attachments/assets/28292e32-04eb-401e-8d5a-1a6b1ba4854b" />
