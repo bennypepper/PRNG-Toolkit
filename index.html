@@ -1,351 +1,400 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Random Number Generator & Tester</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], },
+                    colors: { darkBg: '#0f172a', darkCard: '#1e293b', }
+                }
+            }
+        }
+    </script>
+    <!-- Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .tab-button.active {
-            border-color: #4f46e5;
-            color: #4f46e5;
-            background-color: #eef2ff;
-        }
-        .loader {
-            border-top-color: #4f46e5;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        details > summary {
-            list-style: none;
-            cursor: pointer;
-        }
-        details > summary::-webkit-details-marker {
-            display: none;
-        }
-        details[open] summary .arrow {
-            transform: rotate(90deg);
-        }
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: help;
-        }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 250px;
-            background-color: #374151;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 8px;
-            position: absolute;
-            z-index: 10;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -125px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 0.8rem;
-            line-height: 1.4;
-        }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-        #content-info h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 0.25rem;
-        }
-        #content-info p, #content-info li {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #4b5563;
-        }
-        #content-info ul {
-            list-style-type: disc;
-            padding-left: 1.5rem;
-            margin-top: 0.5rem;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .tab-button.active { border-bottom-color: #6366f1; color: #6366f1; }
+        .dark .tab-button.active { border-bottom-color: #818cf8; color: #818cf8; }
+        .loader { border-top-color: currentColor; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        details > summary { list-style: none; cursor: pointer; }
+        details > summary::-webkit-details-marker { display: none; }
+        details[open] summary .arrow { transform: rotate(90deg); }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-slate-50 text-slate-800 dark:bg-darkBg dark:text-slate-200 transition-colors duration-300 min-h-screen flex flex-col">
 
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Advanced Random Number Generator & Tester</h1>
-            <p class="text-md text-gray-600 mt-2">Generate, visualize, and analyze pseudo-random numbers with multiple algorithms and formal statistical tests.</p>
+    <div class="container mx-auto p-4 sm:p-6 lg:max-w-6xl flex-grow">
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-10 mt-4">
+            <div>
+                <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-2">PRNG Toolkit</h1>
+                <p class="text-md text-slate-600 dark:text-slate-400">Generate, visualize, and analyze pseudo-random sequences.</p>
+            </div>
+            <button id="theme-toggle" class="mt-4 sm:mt-0 p-2 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-yellow-400 hover:bg-slate-300 dark:hover:bg-slate-600 transition">
+                <!-- Sun Icon -->
+                <svg id="theme-toggle-light-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 2.32a1 1 0 011.415 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM14.95 15.657a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM10 18a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zm-4.22-2.32a1 1 0 01-1.415 0l-.707-.707a1 1 0 011.414-1.414l.707.707a1 1 0 010 1.414zM2 10a1 1 0 011-1h1a1 1 0 110 2H3a1 1 0 01-1-1zm2.32-4.22a1 1 0 011.414-1.414l.707.707a1 1 0 00-1.414 1.414l-.707-.707zM10 5a5 5 0 100 10 5 5 0 000-10z" clip-rule="evenodd" />
+                </svg>
+                <!-- Moon Icon -->
+                <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+            </button>
         </header>
 
-        <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-8">
-            <!-- Main Tabs -->
-            <div class="mb-6 border-b border-gray-200">
-                <nav class="flex space-x-2 sm:space-x-4" aria-label="Tabs">
-                    <button id="tab-generator" class="tab-button active text-sm sm:text-base font-medium py-3 px-4 border-b-2">Generator</button>
-                    <button id="tab-tester" class="tab-button text-sm sm:text-base font-medium py-3 px-4 border-b-2 border-transparent">Tester & Visualizer</button>
-                    <button id="tab-info" class="tab-button text-sm sm:text-base font-medium py-3 px-4 border-b-2 border-transparent">Information</button>
+        <!-- Main Card -->
+        <div class="w-full bg-white dark:bg-darkCard rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <!-- Tabs -->
+            <div class="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                <nav class="flex flex-wrap" aria-label="Tabs">
+                    <button id="tab-generator" class="tab-button active flex items-center space-x-2 text-sm sm:text-base font-semibold py-4 px-4 sm:px-6 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        <span>Generator</span>
+                    </button>
+                    <button id="tab-tester" class="tab-button flex items-center space-x-2 text-sm sm:text-base font-semibold py-4 px-4 sm:px-6 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        <span>Tester & Data</span>
+                    </button>
+                    <button id="tab-info" class="tab-button flex items-center space-x-2 text-sm sm:text-base font-semibold py-4 px-4 sm:px-6 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                        <span>Education & About</span>
+                    </button>
                 </nav>
             </div>
 
-            <!-- Generator Tab Content -->
-            <div id="content-generator">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Generation Settings -->
-                    <div class="space-y-6">
-                        <h2 class="text-xl font-semibold text-gray-700 border-b pb-2">1. Generation Settings</h2>
-                        
-                        <div>
-                            <label for="method" class="block text-sm font-medium text-gray-700 mb-1">Method</label>
-                            <select id="method" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="lcg">Linear Congruential Generator (LCG)</option>
-                                <option value="ms">Middle-Square</option>
-                                <option value="xorshift">Xorshift</option>
-                            </select>
-                        </div>
-                        
-                        <div id="lcg-params-container">
+            <!-- Content Container -->
+            <div class="p-6 sm:p-8">
+                <!-- GENERATOR SECTION -->
+                <div id="content-generator" class="animate-fade-in block">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        <!-- Left Panel: Config -->
+                        <div class="space-y-6">
+                            <div class="flex items-center space-x-2 mb-4">
+                                <span class="bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 w-8 h-8 rounded-lg flex items-center justify-center font-bold">1</span>
+                                <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Mechanism</h2>
+                            </div>
+                            
+                            <!-- Method Select -->
                             <div>
-                                <label for="lcg-preset" class="block text-sm font-medium text-gray-700 mb-1">LCG Presets</label>
-                                <select id="lcg-preset" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                    <option value="custom">Custom Parameters</option>
-                                    <option value="numerical-recipes">Numerical Recipes</option>
-                                    <option value="glibc">glibc (C++)</option>
-                                    <option value="java">Java util.Random</option>
+                                <label for="method" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Algorithm</label>
+                                <select id="method" class="w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:text-white transition">
+                                    <option value="mt19937">Mersenne Twister (MT19937) - Recommended</option>
+                                    <option value="pcg32">PCG32 (Permuted Congruential) - Fast & High Quality</option>
+                                    <option value="lcg">Linear Congruential Generator (LCG)</option>
+                                    <option value="xorshift">Xorshift</option>
+                                    <option value="ms">Middle-Square (Educational)</option>
                                 </select>
                             </div>
-                            <div id="lcg-params" class="space-y-4 mt-4">
+                            
+                            <!-- LCG Config -->
+                            <div id="lcg-params-container" class="hidden p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-4">
                                 <div>
-                                    <div class="tooltip"><label for="lcg-a" class="block text-sm font-medium text-gray-700">Multiplier (a)</label><span class="tooltiptext">Hull-Dobell Condition 2: (a-1) must be divisible by all prime factors of m. Condition 3: (a-1) must be a multiple of 4 if m is a multiple of 4.</span></div>
-                                    <input type="number" id="lcg-a" class="w-full p-2 border border-gray-300 rounded-md">
+                                    <label for="lcg-preset" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">LCG Presets</label>
+                                    <select id="lcg-preset" class="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm dark:text-white">
+                                        <option value="numerical-recipes">Numerical Recipes</option>
+                                        <option value="glibc">glibc (C++)</option>
+                                        <option value="java">Java util.Random</option>
+                                        <option value="custom">Custom Parameters</option>
+                                    </select>
                                 </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <label for="lcg-a" class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Multiplier (a)</label>
+                                        <input type="number" id="lcg-a" class="w-full p-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md text-sm dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label for="lcg-c" class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Increment (c)</label>
+                                        <input type="number" id="lcg-c" class="w-full p-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md text-sm dark:text-white">
+                                    </div>
+                                     <div>
+                                        <label for="lcg-m" class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Modulus (m)</label>
+                                        <input type="number" id="lcg-m" class="w-full p-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-md text-sm dark:text-white">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Count & Seed -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div>
-                                    <div class="tooltip"><label for="lcg-c" class="block text-sm font-medium text-gray-700">Increment (c)</label><span class="tooltiptext">Hull-Dobell Condition 1: c and m must be coprime (their greatest common divisor is 1).</span></div>
-                                    <input type="number" id="lcg-c" class="w-full p-2 border border-gray-300 rounded-md">
+                                    <label for="count-preset" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Quantity</label>
+                                    <select id="count-preset" class="w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 dark:text-white mb-2 transition">
+                                        <option value="1000">1,000 Numbers</option>
+                                        <option value="10000">10,000 Numbers</option>
+                                        <option value="50000">50,000 Numbers</option>
+                                        <option value="custom">Custom</option>
+                                    </select>
+                                    <input type="number" id="count-custom" class="hidden w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm dark:text-white" placeholder="Custom amount">
                                 </div>
-                                 <div>
-                                    <div class="tooltip"><label for="lcg-m" class="block text-sm font-medium text-gray-700">Modulus (m)</label><span class="tooltiptext">The modulus defines the range of the numbers [0, m-1]. For a full period, it should be chosen carefully with 'a' and 'c'. Powers of 2 are common.</span></div>
-                                    <input type="number" id="lcg-m" class="w-full p-2 border border-gray-300 rounded-md">
+                                <div class="relative">
+                                    <label for="seed" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Initial Seed</label>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="number" id="seed" class="flex-1 w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 dark:text-white" placeholder="E.g., 12345">
+                                        <button id="generate-seed" title="Auto Generate Seed" class="p-3 bg-indigo-50 dark:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-700/50 text-indigo-600 dark:text-indigo-300 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800 transition">
+                                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                                        </button>
+                                        <button id="seed-settings-btn" title="Seed Length Settings" class="p-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        </button>
+                                    </div>
+                                    <!-- Seed Length Popover -->
+                                    <div id="seed-popover" class="hidden absolute top-full left-0 z-10 mt-2 w-[240px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-4">
+                                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Auto-Seed Digit Length</label>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Middle-Square heavily relies on this structure length.</p>
+                                        <input type="number" id="auto-seed-length" value="8" min="4" max="15" class="w-full p-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-md text-sm dark:text-white">
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div>
-                            <label for="count" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                            <select id="count-preset" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mb-2">
-                                <option value="1000">1,000 Numbers</option>
-                                <option value="10000">10,000 Numbers</option>
-                                <option value="50000">50,000 Numbers</option>
-                                <option value="custom">Custom</option>
-                            </select>
-                            <input type="number" id="count-custom" class="hidden w-full p-2 border border-gray-300 rounded-md" placeholder="Enter custom amount (e.g., 12345)">
-                        </div>
+                        <!-- Right Panel: Output Format -->
+                        <div class="space-y-6">
+                            <div class="flex items-center space-x-2 mb-4">
+                                <span class="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 w-8 h-8 rounded-lg flex items-center justify-center font-bold">2</span>
+                                <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Execution</h2>
+                            </div>
 
-                        <div>
-                            <label for="seed" class="block text-sm font-medium text-gray-700 mb-1">Seed</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="number" id="seed" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Enter a non-zero starting number">
-                                <button id="generate-seed" class="p-2 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200">Auto</button>
-                                <button id="seed-settings-btn" class="p-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                      <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0L8 5.12a1 1 0 01-1.64.68l-1.88-1.08c-1.45-.84-3.15.42-2.3 1.87l.95 1.64c.54.94.06 2.16-.94 2.6l-1.72.79c-1.45.67-1.45 2.74 0 3.41l1.72.79c1 .44 1.48 1.66.94 2.6l-.95 1.64c-.85 1.45.85 2.71 2.3 1.87l1.88-1.08a1 1 0 011.64.68l.51 1.95c.38 1.56 2.6 1.56 2.98 0l.51-1.95a1 1 0 011.64-.68l1.88 1.08c1.45.84 3.15-.42 2.3-1.87l-.95-1.64a1 1 0 01.94-2.6l1.72-.79c-1.45-.67-1.45-2.74 0-3.41l-1.72-.79a1 1 0 01-.94-2.6l.95-1.64c.85-1.45-.85-2.71-2.3-1.87l-1.88 1.08a1 1 0 01-1.64-.68L11.49 3.17zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-                                    </svg>
+                            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-darkCard shadow-sm space-y-5">
+                                <!-- Format Config -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Number Formatting</label>
+                                    <div class="flex flex-wrap gap-4">
+                                        <label class="flex items-center cursor-pointer group">
+                                            <input type="radio" name="format" value="raw" class="form-radio w-4 h-4 text-indigo-600 bg-slate-100 border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-indigo-500" checked>
+                                            <span class="ml-2 text-sm text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">Raw Integer</span>
+                                        </label>
+                                        <label class="flex items-center cursor-pointer group">
+                                            <input type="radio" name="format" value="normalized" class="form-radio w-4 h-4 text-indigo-600 bg-slate-100 border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-indigo-500">
+                                            <span class="ml-2 text-sm text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition">Normalized (0.0 - 1.0)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="border-t border-slate-100 dark:border-slate-700 pt-5">
+                                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Export Filetype</label>
+                                    <div class="flex space-x-6">
+                                        <label class="flex items-center cursor-pointer group">
+                                            <input type="radio" name="export" value="csv" class="form-radio w-4 h-4 text-indigo-600 focus:ring-indigo-500" checked>
+                                            <span class="ml-2 text-sm text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 transition">.CSV</span>
+                                        </label>
+                                        <label class="flex items-center cursor-pointer group">
+                                            <input type="radio" name="export" value="xlsx" class="form-radio w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                                            <span class="ml-2 text-sm text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 transition">.XLSX</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="pt-2 space-y-3">
+                                 <button id="generate-btn" class="w-full flex items-center justify-center bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-md transition disabled:opacity-50">
+                                    <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    <span id="btn-text">Generate & Analyze</span>
+                                    <div id="btn-loader" class="hidden loader w-5 h-5 ml-3 border-2 border-white rounded-full"></div>
+                                </button>
+                                 <button id="download-btn" class="w-full flex items-center justify-center bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 font-bold py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                                    <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    Download Dataset
                                 </button>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Output Settings -->
-                    <div class="space-y-6">
-                        <h2 class="text-xl font-semibold text-gray-700 border-b pb-2">2. Output & Actions</h2>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Number Format</label>
-                            <div class="flex space-x-4">
-                                <label class="flex items-center"><input type="radio" name="format" value="raw" class="form-radio text-indigo-600" checked><span class="ml-2">Raw</span></label>
-                                <label class="flex items-center"><input type="radio" name="format" value="normalized" class="form-radio text-indigo-600"><span class="ml-2">Normalized (0-1)</span></label>
-                                <label class="flex items-center"><input type="radio" name="format" value="both" class="form-radio text-indigo-600"><span class="ml-2">Both</span></label>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Export Format</label>
-                            <div class="flex space-x-4">
-                                <label class="flex items-center"><input type="radio" name="export" value="csv" class="form-radio text-indigo-600" checked><span class="ml-2">CSV</span></label>
-                                <label class="flex items-center"><input type="radio" name="export" value="xlsx" class="form-radio text-indigo-600"><span class="ml-2">XLSX</span></label>
-                                <label class="flex items-center"><input type="radio" name="export" value="txt" class="form-radio text-indigo-600"><span class="ml-2">TXT</span></label>
-                            </div>
-                        </div>
-
-                        <div class="pt-4 space-y-3">
-                             <button id="generate-btn" class="w-full flex items-center justify-center bg-indigo-600 text-white font-bold py-3 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-300">
-                                <span id="btn-text">Generate & Test</span>
-                                <div id="btn-loader" class="hidden loader w-5 h-5 border-2 border-white rounded-full ml-3"></div>
-                            </button>
-                             <button id="download-btn" class="w-full flex items-center justify-center bg-gray-600 text-white font-bold py-3 px-4 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed" disabled>
-                                Download Results
-                            </button>
-                        </div>
-                        
-                        <div class="pt-4 border-t">
-                            <h3 class="text-md font-medium text-gray-600 mb-2">Configuration</h3>
-                            <div class="flex space-x-2">
-                                <button id="save-config-btn" class="flex-1 text-sm bg-blue-100 text-blue-700 p-2 rounded-md hover:bg-blue-200">Save Config</button>
-                                <button id="load-config-btn" class="flex-1 text-sm bg-green-100 text-green-700 p-2 rounded-md hover:bg-green-200">Load Config</button>
-                                <button id="reset-btn" class="flex-1 text-sm bg-red-100 text-red-700 p-2 rounded-md hover:bg-red-200">Reset</button>
-                                <input type="file" id="load-config-input" class="hidden" accept=".json">
-                            </div>
-                        </div>
-                        
-                        <div id="message-box" class="hidden p-4 mt-4 text-sm rounded-md"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Tester Tab Content -->
-            <div id="content-tester" class="hidden">
-                 <div id="tester-placeholder">
-                    <div class="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
-                        <h3 class="text-lg font-medium text-gray-900">Test Your Own Numbers</h3>
-                        <p class="mt-1 text-sm text-gray-600">Upload a file to analyze its randomness, or generate a new sequence from the "Generator" tab.</p>
-                        <button id="upload-btn" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            Upload File & Test
-                        </button>
-                        <input type="file" id="upload-input" class="hidden" accept=".csv,.xlsx,.txt">
-                        <div class="mt-4 text-left text-xs text-gray-500 bg-gray-50 p-3 rounded-md">
-                            <strong>File Format Instructions:</strong>
-                            <ul class="list-disc list-inside mt-1">
-                                <li>Supported formats: CSV, XLSX, TXT.</li>
-                                <li>Data must be in a single column.</li>
-                                <li>A header row is optional and will be ignored.</li>
-                                <li>The file should contain only numbers. Non-numeric rows will be skipped.</li>
-                            </ul>
+                            
+                            <!-- Notifications -->
+                            <div id="message-box" class="hidden p-4 rounded-xl text-sm font-medium flex items-center mt-4"></div>
                         </div>
                     </div>
                 </div>
-                <div id="test-results-container" class="hidden mt-6 space-y-4">
-                    <!-- Test results will be dynamically inserted here -->
-                </div>
-            </div>
-
-            <!-- Information Tab Content -->
-            <div id="content-info" class="hidden">
-                <h2 class="text-2xl font-bold text-gray-800">Information & Best Practices</h2>
                 
-                <h3>About This Program</h3>
-                <p>This application is a tool for exploring the world of pseudo-random number generation (PRNG). It allows you to create sequences of numbers using different mathematical algorithms and then analyze their quality using formal statistical tests. The goal is to understand that "random" numbers generated by computers are not truly random, but can be "good enough" for many purposes if the generator is well-designed.</p>
-
-                <h3>Tips for Generator Parameters</h3>
-                <p>The quality of your generated numbers depends heavily on the initial parameters you provide.</p>
-                <ul>
-                    <li><strong>Seed:</strong> The seed is the starting point for the generator. The same seed will always produce the exact same sequence of numbers. For good results, a seed should be unpredictable.
-                        <ul>
-                            <li><strong>Middle-Square Tip:</strong> This method is very sensitive to the seed. Generally, the longer the seed (more digits), the longer the sequence will be before it repeats or degenerates (e.g., starts producing all zeros). A 4-digit seed is a minimum for experimentation; 6 or 8 digits is better.</li>
-                            <li><strong>Real-World Sources for Seeds:</strong> To get a more unpredictable seed, you can use real-world events. For example, start a stopwatch and stop it randomly; use the milliseconds (e.g., 1438 ms) as your seed. Other sources include mouse movement coordinates or timing the pauses between your keystrokes. The "Auto" button uses the current system time in milliseconds, which is a common and decent source of unpredictability.</li>
-                        </ul>
-                    </li>
-                    <li><strong>LCG Parameters (a, c, m):</strong> To get the longest possible sequence before numbers repeat (a "full period"), these parameters must satisfy the Hull-Dobell Theorem. The presets provided (like "Numerical Recipes") are known to have good properties.</li>
-                    <li><strong>Xorshift:</strong> This algorithm is generally very fast and produces high-quality random numbers. It is less sensitive to its parameters than LCGs, so the main focus is on providing a good, unpredictable seed.</li>
-                </ul>
-
-                <h3>Understanding Randomness</h3>
-                <p>What makes a sequence of numbers "random"? Two key properties are tested:</p>
-                <ul>
-                    <li><strong>Uniformity:</strong> The numbers should be evenly spread across their possible range. For example, in a sequence from 0-99, the number of values between 0-9 should be roughly the same as the number between 90-99. The Chi-Square test and Histogram visualization check for this.</li>
-                    <li><strong>Independence:</strong> Knowing one number in the sequence should give you no information about the next number. There should be no discernible pattern or correlation. The Autocorrelation and Runs tests check for this.</li>
-                </ul>
-
-                <h3>Pseudo-Random vs. True Random</h3>
-                <p>The algorithms in this program are <strong>Pseudo-Random Number Generators (PRNGs)</strong>. They are deterministic algorithms that produce sequences that only *appear* random. In contrast, <strong>True Random Number Generators (TRNGs)</strong> use unpredictable physical phenomena as a source of data, such as atmospheric noise, radioactive decay, or cosmic background radiation. While PRNGs are sufficient for simulations and games, TRNGs are required for high-stakes applications like cryptography.</p>
-            </div>
-        </div>
-        
-        <!-- Seed Settings Modal -->
-        <div id="seed-settings-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full z-50 flex items-center justify-center">
-            <div class="relative mx-auto p-5 border w-full max-w-sm shadow-lg rounded-md bg-white">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">Pengaturan Seed Otomatis</h3>
-                    <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                </div>
-                <div class="mt-3">
-                    <div class="mt-2 px-2 py-3">
-                        <label for="seed-length-input" class="block text-sm font-medium text-gray-700 text-left">Panjang Digit Seed</label>
-                        <input type="number" id="seed-length-input" class="mt-1 w-full p-2 border border-gray-300 rounded-md" value="6" min="4" max="14">
-                        <p class="text-xs text-left text-gray-500 mt-1">Disarankan 6-10 digit untuk metode Middle Square.</p>
+                <!-- TESTER SECTION -->
+                <div id="content-tester" class="hidden animate-fade-in block">
+                     <div id="tester-placeholder" class="text-center py-12 mx-auto">
+                        <div class="inline-flex w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full items-center justify-center mb-4 border border-slate-200 dark:border-slate-700">
+                             <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100">Upload External Data</h3>
+                        <p class="mt-2 text-slate-500 dark:text-slate-400 max-w-md mx-auto text-sm">Upload a dataset to run tests independently. Ensure data is in a single numeric column.</p>
+                        
+                        <!-- Upload Configuration -->
+                        <div class="mt-6 max-w-sm mx-auto bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-left">
+                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Data Source Modulus Limit</label>
+                            <div class="text-xs text-slate-500 dark:text-slate-400 mb-3">If the numbers are heavily structured (e.g., 0-255), define it here. Leave as <span class="bg-slate-200 dark:bg-slate-700 px-1 rounded font-mono">Auto</span> for normalized floats (0.0-1.0) or standard raw generation boundaries.</div>
+                            <input type="number" id="upload-modulus" placeholder="Auto" class="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-sm dark:text-white mb-4 shadow-sm">
+                            
+                            <button id="upload-btn" class="w-full flex items-center justify-center bg-indigo-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-indigo-700 shadow-md transition">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                Browse Files
+                            </button>
+                            <input type="file" id="upload-input" class="hidden" accept=".csv,.xlsx,.txt">
+                        </div>
                     </div>
-                    <div class="items-center px-2 py-3">
-                        <button id="save-seed-settings-btn" class="px-4 py-2 bg-indigo-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                            Simpan Pengaturan
-                        </button>
+                    
+                    <div id="test-results-container" class="hidden space-y-6">
+                        <!-- Header populated dynamically -->
                     </div>
                 </div>
+
+                <!-- EDUCATION & ABOUT SECTION -->
+                <div id="content-info" class="hidden animate-fade-in block">
+                    <div class="space-y-10">
+                        <!-- About Section -->
+                        <div class="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
+                            <h2 class="text-2xl font-bold text-indigo-900 dark:text-indigo-300 mb-4 flex items-center">
+                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                About The PRNG Toolkit
+                            </h2>
+                            <p class="text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
+                                This tool was built by <strong>Benedict Pepper</strong>. It originated as a vital testing hub during a university Modeling and Simulation course. The end project was a robust Queueing System Simulator (which you can check out on my GitHub).
+                            </p>
+                            <p class="text-slate-700 dark:text-slate-300 leading-relaxed">
+                                Before making the simulation, it is critical to guarantee that the generated numbers representing inter-arrival times or queue probabilities are statistically robust. This application is designed to educate on how different algorithms work and rigorously verify their entropy via Hypothesis Testing.
+                            </p>
+                        </div>
+
+                        <!-- PRNG Glossary -->
+                        <div class="space-y-6">
+                            <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-2">Algorithm Glossary</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- MT19937 -->
+                                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <h4 class="font-bold text-lg text-slate-800 dark:text-white mb-2">Mersenne Twister (MT19937)</h4>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">The default PRNG for Python, C++, and Excel. It has a massive period length of $2^{19937}-1$. Uses deeply complex bitwise twisting matrices.</p>
+                                    <span class="inline-block bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded text-xs font-mono text-slate-500">Period: 2^19937-1</span>
+                                </div>
+                                <!-- PCG32 -->
+                                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <h4 class="font-bold text-lg text-slate-800 dark:text-white mb-2">Permuted Congruential (PCG32)</h4>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">A highly modern, statistically brilliant algorithm. It utilizes LCG state transition but scrambles the output via an XSH-RR permutation layer.</p>
+                                    <span class="inline-block bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded text-xs font-mono text-slate-500">Recommended for simulations</span>
+                                </div>
+                                <!-- LCG -->
+                                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <h4 class="font-bold text-lg text-slate-800 dark:text-white mb-2">Linear Congruential (LCG)</h4>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">One of the oldest PRNG algorithms. Very fast, but flawed if parameters ($a, c, m$) aren't well chosen via the Hull-Dobell theorem.</p>
+                                    <span class="inline-block bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded text-xs font-mono text-slate-600 dark:text-slate-400">Formula: X_{n+1} = (aX_n + c) % m</span>
+                                </div>
+                                <!-- MS -->
+                                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <h4 class="font-bold text-lg text-slate-800 dark:text-white mb-2">Middle-Square</h4>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">Devised by John von Neumann. You square a seed, extract the middle digits, and repeat. Poor periods, prone to collapsing to zero quickly.</p>
+                                    <span class="inline-block bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded text-xs font-mono text-slate-500">Status: Educational only</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Testing Glossary -->
+                        <div class="space-y-6">
+                            <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700 pb-2">Statistical Testing Glossary</h3>
+                            <div class="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-4">
+                                <div>
+                                    <strong class="text-slate-800 dark:text-white">Null Hypothesis (H₀)</strong>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Hypothesis testing determines if a sequence differs significantly from "true randomness". H₀ always assumes the generated numbers *are* truly random. If the P-Value drops below our threshold (commonly $\alpha = 0.05$ or $0.01$), we <strong>Reject H₀</strong> (Meaning the sequence is predictable/flawed).</p>
+                                </div>
+                                <hr class="border-slate-100 dark:border-slate-700">
+                                <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                                    <li><strong class="text-slate-800 dark:text-slate-200">Frequency (Monobit):</strong> Counts binary ones vs zeros. They should be roughly 50/50.</li>
+                                    <li><strong class="text-slate-800 dark:text-slate-200">Runs Test:</strong> Analyzes oscillation. If a sequence goes 0,0,0,0,0,0 it's too clustered. If it goes 1,0,1,0,1,0 it's too predictable. Runs ensures grouping happens naturally.</li>
+                                    <li><strong class="text-slate-800 dark:text-slate-200">Chi-Square Uniformity:</strong> Drops numbers into 10 buckets. It calculates if buckets are filled equally, proving the distribution is uniform.</li>
+                                    <li><strong class="text-slate-800 dark:text-slate-200">Autocorrelation:</strong> Tests if generating a number mathematically biases the <em>next</em> number generated.</li>
+                                    <li><strong class="text-slate-800 dark:text-slate-200">Poker Test:</strong> Simulates drawing poker hands from digits (e.g. "Three of a kind") matching predicted categorical probabilities.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <footer class="text-center mt-8 text-sm text-gray-500">
-            <p>Built with HTML, Tailwind CSS, and Chart.js.</p>
+        <footer class="text-center mt-10 text-sm font-medium text-slate-400 dark:text-slate-500">
+            <p>Developed by <strong>Benedict Pepper</strong>.</p>
+            <p class="mt-1 text-xs opacity-70">Built with Tailwind CSS & Chart.js.</p>
         </footer>
     </div>
 
+    <!-- MAIN SCRIPT -->
     <script>
-        // --- DOM Element References ---
-        const generatorTab = document.getElementById('tab-generator');
-        const testerTab = document.getElementById('tab-tester');
-        const infoTab = document.getElementById('tab-info');
-        const generatorContent = document.getElementById('content-generator');
-        const testerContent = document.getElementById('content-tester');
-        const infoContent = document.getElementById('content-info');
-        const testerPlaceholder = document.getElementById('tester-placeholder');
-        const testResultsContainer = document.getElementById('test-results-container');
+        // --- Theme Toggle Setup ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+                themeToggleLightIcon.classList.add('hidden');
+                themeToggleDarkIcon.classList.remove('hidden');
+                Chart.defaults.color = '#64748b'; 
+                Chart.defaults.borderColor = '#e2e8f0'; 
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+                themeToggleDarkIcon.classList.add('hidden');
+                themeToggleLightIcon.classList.remove('hidden');
+                Chart.defaults.color = '#94a3b8'; 
+                Chart.defaults.borderColor = '#334155'; 
+            }
+            activeCharts.forEach(c => c.update());
+        }
+
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            themeToggleLightIcon.classList.remove('hidden');
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.borderColor = '#334155';
+        } else {
+            themeToggleDarkIcon.classList.remove('hidden');
+        }
+        themeToggleBtn.addEventListener('click', toggleTheme);
+
+        // --- DOM Elements ---
+        const tabs = { 
+            generator: document.getElementById('tab-generator'), 
+            tester: document.getElementById('tab-tester'),
+            info: document.getElementById('tab-info') 
+        };
+        const contents = { 
+            generator: document.getElementById('content-generator'), 
+            tester: document.getElementById('content-tester'),
+            info: document.getElementById('content-info') 
+        };
         
         const methodSelect = document.getElementById('method');
         const lcgParamsContainer = document.getElementById('lcg-params-container');
         const lcgPresetSelect = document.getElementById('lcg-preset');
-        const lcgAInput = document.getElementById('lcg-a');
-        const lcgCInput = document.getElementById('lcg-c');
-        const lcgMInput = document.getElementById('lcg-m');
-
-        const countPreset = document.getElementById('count-preset');
-        const countCustom = document.getElementById('count-custom');
+        const lcgAInput = document.getElementById('lcg-a'), lcgCInput = document.getElementById('lcg-c'), lcgMInput = document.getElementById('lcg-m');
+        const countPreset = document.getElementById('count-preset'), countCustom = document.getElementById('count-custom');
         const seedInput = document.getElementById('seed');
         const generateSeedBtn = document.getElementById('generate-seed');
         const seedSettingsBtn = document.getElementById('seed-settings-btn');
-        const generateBtn = document.getElementById('generate-btn');
-        const downloadBtn = document.getElementById('download-btn');
-        const btnText = document.getElementById('btn-text');
-        const btnLoader = document.getElementById('btn-loader');
+        const seedPopover = document.getElementById('seed-popover');
+        const autoSeedLengthInput = document.getElementById('auto-seed-length');
+        const generateBtn = document.getElementById('generate-btn'), btnText = document.getElementById('btn-text'), btnLoader = document.getElementById('btn-loader');
         const messageBox = document.getElementById('message-box');
-
-        const saveConfigBtn = document.getElementById('save-config-btn');
-        const loadConfigBtn = document.getElementById('load-config-btn');
-        const loadConfigInput = document.getElementById('load-config-input');
-        const resetBtn = document.getElementById('reset-btn');
-        const uploadBtn = document.getElementById('upload-btn');
-        const uploadInput = document.getElementById('upload-input');
-
-        // Modal elements
-        const seedSettingsModal = document.getElementById('seed-settings-modal');
-        const closeModalBtn = document.getElementById('close-modal-btn');
-        const saveSeedSettingsBtn = document.getElementById('save-seed-settings-btn');
-        const seedLengthInput = document.getElementById('seed-length-input');
+        const downloadBtn = document.getElementById('download-btn');
+        const uploadBtn = document.getElementById('upload-btn'), uploadInput = document.getElementById('upload-input'), uploadModulusInput = document.getElementById('upload-modulus');
+        const testResultsContainer = document.getElementById('test-results-container'), testerPlaceholder = document.getElementById('tester-placeholder');
 
         let generatedNumbers = [];
         let isDataFromUpload = false;
         let activeCharts = [];
-        let autoSeedLength = 6;
 
         const LCG_PRESETS = {
             'numerical-recipes': { a: 1664525, c: 1013904223, m: 2**32 },
@@ -355,332 +404,72 @@
         };
 
         // --- Event Listeners ---
-        generatorTab.addEventListener('click', () => switchTab('generator'));
-        testerTab.addEventListener('click', () => switchTab('tester'));
-        infoTab.addEventListener('click', () => switchTab('info'));
+        for (const key in tabs) tabs[key].addEventListener('click', () => switchTab(key));
         methodSelect.addEventListener('change', handleMethodChange);
         lcgPresetSelect.addEventListener('change', handleLcgPresetChange);
         countPreset.addEventListener('change', () => countCustom.classList.toggle('hidden', countPreset.value !== 'custom'));
-        generateSeedBtn.addEventListener('click', generateAutoSeed);
-        seedSettingsBtn.addEventListener('click', () => seedSettingsModal.classList.remove('hidden'));
-        closeModalBtn.addEventListener('click', () => seedSettingsModal.classList.add('hidden'));
-        saveSeedSettingsBtn.addEventListener('click', saveSeedSettings);
+        
+        generateSeedBtn.addEventListener('click', () => { 
+            let sl = parseInt(autoSeedLengthInput.value); if(isNaN(sl)||sl<4) sl=8;
+            seedInput.value = Math.floor(Math.random() * (Math.pow(10, sl) - Math.pow(10, sl-1))) + Math.pow(10, sl-1); 
+        });
+        
+        seedSettingsBtn.addEventListener('click', () => seedPopover.classList.toggle('hidden'));
+        document.addEventListener('click', (e) => {
+            if (!seedSettingsBtn.contains(e.target) && !seedPopover.contains(e.target)) seedPopover.classList.add('hidden');
+        });
+
         generateBtn.addEventListener('click', handleGenerate);
         downloadBtn.addEventListener('click', handleDownload);
-        saveConfigBtn.addEventListener('click', saveConfiguration);
-        loadConfigBtn.addEventListener('click', () => loadConfigInput.click());
-        loadConfigInput.addEventListener('change', loadConfiguration);
-        resetBtn.addEventListener('click', resetSettings);
         uploadBtn.addEventListener('click', () => uploadInput.click());
         uploadInput.addEventListener('change', handleFileUpload);
 
-        // --- Initial Setup ---
-        resetSettings();
-
-        // --- Core Functions ---
-
-        function switchTab(activeTab) {
-            const tabs = { generator: generatorTab, tester: testerTab, info: infoTab };
-            const contents = { generator: generatorContent, tester: testerContent, info: infoContent };
-            
-            for (const tabName in tabs) {
-                const isActive = tabName === activeTab;
-                tabs[tabName].classList.toggle('active', isActive);
-                contents[tabName].classList.toggle('hidden', !isActive);
-            }
-        }
-
-        function resetSettings() {
-            methodSelect.value = 'lcg';
-            lcgPresetSelect.value = 'numerical-recipes';
-            handleLcgPresetChange();
-            handleMethodChange();
-            countPreset.value = '1000';
-            countCustom.value = '';
-            countCustom.classList.add('hidden');
-            seedInput.value = '';
-            document.querySelector('input[name="format"][value="raw"]').checked = true;
-            document.querySelector('input[name="export"][value="csv"]').checked = true;
-            autoSeedLength = 6;
-            seedLengthInput.value = 6;
-            messageBox.classList.add('hidden');
-            clearTesterState();
-            console.log('Settings and tester results reset to default.');
-        }
-
-        function handleMethodChange() {
-            lcgParamsContainer.classList.toggle('hidden', methodSelect.value !== 'lcg');
-        }
+        handleMethodChange(); handleLcgPresetChange();
         
-        function handleLcgPresetChange() {
-            const preset = LCG_PRESETS[lcgPresetSelect.value];
-            if (preset) {
-                lcgAInput.value = preset.a;
-                lcgCInput.value = preset.c;
-                lcgMInput.value = preset.m;
+        // --- Core Helpers ---
+        function switchTab(activeTab) {
+            for (const key in tabs) {
+                const isActive = key === activeTab;
+                tabs[key].classList.toggle('active', isActive);
+                if (isActive) contents[key].classList.remove('hidden');
+                else contents[key].classList.add('hidden');
             }
-        }
-
-        function saveSeedSettings() {
-            const length = parseInt(seedLengthInput.value);
-            if (length >= 4 && length <= 14) {
-                autoSeedLength = length;
-                seedSettingsModal.classList.add('hidden');
-            } else {
-                alert('Panjang digit harus antara 4 dan 14.');
-            }
-        }
-
-        function generateAutoSeed() {
-            const min = Math.pow(10, autoSeedLength - 1);
-            const max = Math.pow(10, autoSeedLength) - 1;
-            seedInput.value = Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
         function showMessage(type, text) {
-            messageBox.className = 'p-4 mt-4 text-sm rounded-md'; // Reset classes
-            const colors = type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700';
-            messageBox.classList.add(...colors.split(' '));
-            messageBox.textContent = text;
+            messageBox.className = 'p-4 rounded-xl text-sm font-medium flex items-center mt-4 ' + 
+                (type === 'error' ? 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-900' 
+                                  : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900');
+            messageBox.innerHTML = `
+                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${type === 'error' ? 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' : 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'}"></path>
+                </svg>
+                <span>${text}</span>`;
+            messageBox.classList.remove('hidden');
         }
 
-        // --- Generation Algorithms ---
-        function* lcgGenerator(seed, a, c, m) { let x = seed; while (true) { x = (a * x + c) % m; yield x; } }
-        function* middleSquareGenerator(seed) {
-            let n = seed; const len = String(seed).length; const seen = new Set();
-            while (!seen.has(n)) {
-                seen.add(n); let sq = String(n * n).padStart(2 * len, '0');
-                const start = Math.floor((sq.length - len) / 2);
-                n = parseInt(sq.substring(start, start + len)); yield n;
-            }
-        }
-        function* xorshiftGenerator(seed) {
-            let x = seed;
-            while (true) {
-                x ^= x << 13; x ^= x >> 17; x ^= x << 5;
-                yield x >>> 0; // Ensure positive integer
-            }
-        }
-
-        // --- Main Handler ---
-        function handleGenerate() {
-            isDataFromUpload = false;
-            // 1. Clear previous state
-            clearTesterState();
-            
-            // 2. Validate inputs
-            const method = methodSelect.value;
-            const count = countPreset.value === 'custom' ? parseInt(countCustom.value) : parseInt(countPreset.value);
-            let seed = parseInt(seedInput.value);
-
-            if (isNaN(count) || count <= 0) { showMessage('error', 'Please enter a valid quantity.'); return; }
-            if (isNaN(seed) || seed === 0) { showMessage('error', 'Please enter a valid, non-zero numerical seed.'); return; }
-            
-            // 3. Set UI to loading state
-            generateBtn.disabled = true;
-            btnText.classList.add('hidden');
-            btnLoader.classList.remove('hidden');
-            
-            setTimeout(() => {
-                try {
-                    // 4. Generate numbers
-                    let generator;
-                    if (method === 'lcg') {
-                        const a = parseInt(lcgAInput.value), c = parseInt(lcgCInput.value), m = parseInt(lcgMInput.value);
-                        if (isNaN(a) || isNaN(c) || isNaN(m) || m <= 0) { throw new Error("Invalid LCG parameters."); }
-                        generator = lcgGenerator(seed, a, c, m);
-                    } else if (method === 'ms') {
-                        if (String(seed).length % 2 !== 0 || String(seed).length < 4) { throw new Error("Middle-Square seed must have an even number of digits (>= 4)."); }
-                        generator = middleSquareGenerator(seed);
-                    } else { // xorshift
-                        generator = xorshiftGenerator(seed);
-                    }
-
-                    for (let i = 0; i < count; i++) {
-                        const result = generator.next();
-                        if (result.done) {
-                            throw new Error(`Generator terminated early after producing ${i} numbers. Try a different seed or method, especially for Middle-Square.`);
-                        }
-                        generatedNumbers.push(result.value);
-                    }
-                    
-                    // 5. Run tests and visualizations
-                    runAllTests();
-                    
-                    showMessage('success', `Successfully generated and tested ${count} numbers. You can now download the results.`);
-                    downloadBtn.disabled = false;
-
-                } catch (e) {
-                    showMessage('error', e.message || 'An unexpected error occurred.');
-                    console.error(e);
-                } finally {
-                    // 6. Reset UI
-                    generateBtn.disabled = false;
-                    btnText.classList.remove('hidden');
-                    btnLoader.classList.add('hidden');
-                }
-            }, 50);
-        }
-
-        // --- File Upload Handler ---
-        async function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            isDataFromUpload = true;
-            clearTesterState();
-            
-            try {
-                const numbers = await parseNumberFile(file);
-                if (numbers.length === 0) {
-                    throw new Error("No valid numbers found in the uploaded file.");
-                }
-                generatedNumbers = numbers;
-                runAllTests();
-                showMessage('success', `Successfully tested ${numbers.length} numbers from your file. You can now download the results.`);
-                downloadBtn.disabled = false;
-            } catch (error) {
-                showMessage('error', error.message);
-                console.error(error);
-            } finally {
-                uploadInput.value = ''; // Reset file input
-            }
-        }
-
-        function parseNumberFile(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                const extension = file.name.split('.').pop().toLowerCase();
-
-                reader.onload = (e) => {
-                    try {
-                        let numbers = [];
-                        if (extension === 'xlsx') {
-                            const data = new Uint8Array(e.target.result);
-                            const workbook = XLSX.read(data, {type: 'array'});
-                            const sheetName = workbook.SheetNames[0];
-                            const worksheet = workbook.Sheets[sheetName];
-                            const json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                            numbers = json.map(row => parseFloat(row[0])).filter(num => !isNaN(num));
-                        } else { // csv, txt
-                            const text = e.target.result;
-                            numbers = text.split(/\r?\n/).map(line => parseFloat(line)).filter(num => !isNaN(num));
-                        }
-                        resolve(numbers);
-                    } catch (err) {
-                        reject(new Error("Failed to parse the file."));
-                    }
-                };
-
-                reader.onerror = () => reject(new Error("Failed to read the file."));
-
-                if (extension === 'xlsx') {
-                    reader.readAsArrayBuffer(file);
-                } else {
-                    reader.readAsText(file);
-                }
-            });
-        }
-
-        // --- Download & Config ---
-        function handleDownload() {
-            if (generatedNumbers.length === 0) { showMessage('error', 'Generate or upload numbers first.'); return; }
-            const outputFormat = document.querySelector('input[name="format"]:checked').value;
-            const exportFormat = document.querySelector('input[name="export"]:checked').value;
-            const modulus = getModulus();
-            let data, headers;
-            if (outputFormat === 'raw') { headers = ['Raw']; data = generatedNumbers.map(n => [n]); }
-            else if (outputFormat === 'normalized') { headers = ['Normalized']; data = generatedNumbers.map(n => [n / modulus]); }
-            else { headers = ['Raw', 'Normalized']; data = generatedNumbers.map(n => [n, n / modulus]); }
-            downloadFile(data, headers, exportFormat);
-        }
-
-        function downloadFile(data, headers, format) {
-            const filename = `numbers_${Date.now()}`;
-            if (format === 'csv' || format === 'txt') {
-                let content = headers.join(',') + '\n' + data.map(row => row.join(',')).join('\n');
-                const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = `${filename}.${format}`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            } else if (format === 'xlsx') {
-                const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Numbers");
-                XLSX.writeFile(wb, `${filename}.xlsx`);
-            }
-        }
-
-        function saveConfiguration() {
-            const config = {
-                method: methodSelect.value,
-                lcgPreset: lcgPresetSelect.value,
-                lcgA: lcgAInput.value,
-                lcgC: lcgCInput.value,
-                lcgM: lcgMInput.value,
-                countPreset: countPreset.value,
-                countCustom: countCustom.value,
-                seed: seedInput.value,
-                autoSeedLength: autoSeedLength,
-                outputFormat: document.querySelector('input[name="format"]:checked').value,
-                exportFormat: document.querySelector('input[name="export"]:checked').value,
-            };
-            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'rng_config.json';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function loadConfiguration(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
-                    const config = JSON.parse(e.target.result);
-                    methodSelect.value = config.method;
-                    lcgPresetSelect.value = config.lcgPreset;
-                    lcgAInput.value = config.lcgA;
-                    lcgCInput.value = config.lcgC;
-                    lcgMInput.value = config.lcgM;
-                    countPreset.value = config.countPreset;
-                    countCustom.value = config.countCustom;
-                    seedInput.value = config.seed;
-                    autoSeedLength = config.autoSeedLength || 6;
-                    seedLengthInput.value = autoSeedLength;
-                    document.querySelector(`input[name="format"][value="${config.outputFormat}"]`).checked = true;
-                    document.querySelector(`input[name="export"][value="${config.exportFormat}"]`).checked = true;
-                    handleMethodChange();
-                    countCustom.classList.toggle('hidden', config.countPreset !== 'custom');
-                    showMessage('success', 'Configuration loaded successfully.');
-                } catch {
-                    showMessage('error', 'Invalid or corrupted configuration file.');
-                }
-            };
-            reader.readAsText(file);
-        }
+        function handleMethodChange() { lcgParamsContainer.classList.toggle('hidden', methodSelect.value !== 'lcg'); }
+        function handleLcgPresetChange() { const p = LCG_PRESETS[lcgPresetSelect.value]; if (p) { lcgAInput.value = p.a; lcgCInput.value = p.c; lcgMInput.value = p.m; } }
 
         function getModulus() {
             if (isDataFromUpload) {
-                return Math.max(...generatedNumbers) || 1;
+                const manualModulus = parseFloat(uploadModulusInput.value);
+                if (!isNaN(manualModulus) && manualModulus > 0) return manualModulus;
+                let max = Math.max(...generatedNumbers);
+                if (max <= 1.0) return 1.0;
+                if (max <= 256) return 256;
+                return Math.pow(2, Math.ceil(Math.log2(max))); 
             }
-            const method = methodSelect.value;
-            if (method === 'lcg') return parseInt(lcgMInput.value);
-            if (method === 'ms') return Math.pow(10, String(seedInput.value).length);
-            if (method === 'xorshift') return 2**32;
+            const m = methodSelect.value;
+            if (m === 'lcg') return parseInt(lcgMInput.value);
+            if (m === 'ms') return Math.pow(10, String(seedInput.value).length);
+            if (m === 'pcg32' || m === 'xorshift' || m === 'mt19937') return 2**32;
             return 1;
         }
-        
+
         function clearTesterState() {
             generatedNumbers = [];
-            activeCharts.forEach(chart => chart.destroy());
-            activeCharts = [];
+            activeCharts.forEach(chart => chart.destroy()); activeCharts = [];
             downloadBtn.disabled = true;
             testResultsContainer.innerHTML = '';
             testResultsContainer.classList.add('hidden');
@@ -688,219 +477,265 @@
             messageBox.classList.add('hidden');
         }
 
-        // --- RANDOMNESS TESTING ---
+        // --- Generators Algorithms ---
+        function* mt19937Generator(seed) {
+            const MT = new Uint32Array(624); let index = 0; MT[0] = seed >>> 0;
+            for (let i=1; i<624; i++) { let s = MT[i-1] ^ (MT[i-1] >>> 30); MT[i] = (((((s & 0xffff0000) >>> 16) * 1812433253) << 16) + (s & 0x0000ffff) * 1812433253 + i); MT[i] >>>= 0; }
+            while(true) {
+                if (index === 0) {
+                    for (let i=0; i<624; i++) {
+                        let y = (MT[i] & 0x80000000) + (MT[(i+1)%624] & 0x7fffffff);
+                        MT[i] = MT[(i+397)%624] ^ (y >>> 1); if (y % 2 !== 0) MT[i] ^= 0x9908b0df;
+                    }
+                }
+                let y = MT[index]; y ^= (y >>> 11); y ^= (y << 7) & 0x9d2c5680; y ^= (y << 15) & 0xefc60000; y ^= (y >>> 18);
+                index = (index + 1) % 624; yield y >>> 0;
+            }
+        }
         
+        function* pcg32Generator(seed) {
+            let state = BigInt(seed) + 1442695040888963407n, inc = 1442695040888963407n | 1n;
+            while(true) {
+                let os = state; state = (os * 6364136223846793005n + inc) & 0xFFFFFFFFFFFFFFFFn;
+                let xsh = Number(((os >> 18n) ^ os) >> 27n), rot = Number(os >> 59n);
+                yield ((xsh >>> rot) | (xsh << ((-rot) & 31))) >>> 0;
+            }
+        }
+
+        function* lcgGenerator(seed, a, c, m) { let x = seed; while (true) { x = (a * x + c) % m; yield x; } }
+        function* xorshiftGenerator(seed) { let x = seed || 1; while(true) { x ^= x << 13; x ^= x >> 17; x ^= x << 5; yield x >>> 0; } }
+        function* middleSquareGenerator(seed) {
+            let n = seed; const len = String(seed).length; const seen = new Set();
+            while (true) { seen.add(n); let sq = String(n * n).padStart(2 * len, '0'); const start = Math.floor((sq.length - len) / 2); n = parseInt(sq.substring(start, start + len)); yield n; }
+        }
+
+        // --- Execution Handler ---
+        function handleGenerate() {
+            clearTesterState(); isDataFromUpload = false;
+            const method = methodSelect.value, count = countPreset.value === 'custom' ? parseInt(countCustom.value) : parseInt(countPreset.value);
+            let seed = parseInt(seedInput.value);
+
+            if (isNaN(count) || count <= 0) { showMessage('error', 'Please enter a valid amount.'); return; }
+            if (isNaN(seed)) { showMessage('error', 'Seed is required.'); return; }
+            
+            generateBtn.disabled = true; btnText.classList.add('hidden'); btnLoader.classList.remove('hidden');
+            
+            setTimeout(() => {
+                try {
+                    let generator;
+                    if (method === 'mt19937') generator = mt19937Generator(seed);
+                    else if (method === 'pcg32') generator = pcg32Generator(seed);
+                    else if (method === 'lcg') generator = lcgGenerator(seed, parseInt(lcgAInput.value), parseInt(lcgCInput.value), parseInt(lcgMInput.value));
+                    else if (method === 'xorshift') generator = xorshiftGenerator(seed);
+                    else if (method === 'ms') generator = middleSquareGenerator(seed);
+
+                    for (let i=0; i<count; i++) generatedNumbers.push(generator.next().value);
+                    
+                    runAllTests(); showMessage('success', `Generated ${count} numbers.`); downloadBtn.disabled = false; switchTab('tester');
+                } catch (e) { showMessage('error', e.message); } 
+                finally { generateBtn.disabled = false; btnText.classList.remove('hidden'); btnLoader.classList.add('hidden'); }
+            }, 50);
+        }
+
+        // --- Upload & Download ---
+        async function handleFileUpload(event) {
+            const file = event.target.files[0]; if (!file) return;
+            isDataFromUpload = true; clearTesterState();
+            try {
+                const nums = await parseFile(file);
+                if (nums.length === 0) throw new Error("No numeric structure found.");
+                generatedNumbers = nums; runAllTests(); showMessage('success', `Imported ${nums.length} numbers.`); downloadBtn.disabled = false;
+            } catch (e) { showMessage('error', e.message); } finally { uploadInput.value = ''; }
+        }
+
+        function parseFile(file) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader(), ext = file.name.split('.').pop().toLowerCase();
+                r.onload = e => {
+                    try {
+                        let nums = [];
+                        if(ext === 'xlsx') {
+                            const wb = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                            nums = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1}).map(row => parseFloat(row[0])).filter(n => !isNaN(n));
+                        } else { nums = e.target.result.split(/\r?\n/).map(l => parseFloat(l.trim())).filter(n => !isNaN(n)); }
+                        resolve(nums);
+                    } catch { reject(new Error("Parse fail")); }
+                };
+                r.onerror = () => reject(new Error("Read fail"));
+                ext === 'xlsx' ? r.readAsArrayBuffer(file) : r.readAsText(file);
+            });
+        }
+
+        function handleDownload() {
+            if (!generatedNumbers.length) return;
+            const outputFmt = document.querySelector('input[name="format"]:checked').value, ext = document.querySelector('input[name="export"]:checked').value, mod = getModulus();
+            let data, headers;
+            if (outputFmt === 'raw') { headers = ['Raw']; data = generatedNumbers.map(n => [n]); }
+            else if (outputFmt === 'normalized') { headers = ['Normalized']; data = generatedNumbers.map(n => [n / mod]); }
+            
+            if(ext === 'csv') {
+                const blob = new Blob([headers.join(',') + '\n' + data.map(r => r.join(',')).join('\n')], {type: 'text/csv'});
+                const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `prng_output_${Date.now()}.csv`; link.click();
+            } else {
+                const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([headers, ...data]), "PRNG_Data");
+                XLSX.writeFile(wb, `prng_output_${Date.now()}.xlsx`);
+            }
+        }
+
+        // --- STATISTICAL ENGINE ---
         function runAllTests() {
             if (generatedNumbers.length === 0) return;
-            const binaryString = generatedNumbers.map(n => n.toString(2)).join('');
-            const modulus = getModulus();
-            const normalizedNumbers = generatedNumbers.map(n => n / modulus);
+            const mod = getModulus(), isFloat = mod === 1, bitLength = isFloat ? 32 : Math.max(1, Math.ceil(Math.log2(mod)));
+            
+            const binaryString = generatedNumbers.map(n => {
+                let iv = n; if (isFloat) iv = Math.floor(n * Math.pow(2, 32)); if (iv < 0) iv = 0;
+                return Math.floor(iv).toString(2).padStart(bitLength, '0');
+            }).join('');
+            
+            const normalizedNumbers = generatedNumbers.map(n => isFloat ? n : n / mod);
 
             const tests = [
                 { name: 'Frequency Test (Monobit)', fn: frequencyTest, input: binaryString },
                 { name: 'Runs Test', fn: runsTest, input: binaryString },
                 { name: 'Chi-Square Uniformity Test', fn: chiSquareTest, input: normalizedNumbers },
                 { name: 'Autocorrelation Test', fn: autocorrelationTest, input: normalizedNumbers },
-                { name: 'Poker Test', fn: pokerTest, input: generatedNumbers }
+                { name: 'Poker Test', fn: pokerTest, input: { raw: generatedNumbers, isFloat: isFloat } }
             ];
 
-            let resultsHtml = `<h2 class="text-xl font-semibold text-gray-800 mb-4">Test Results & Visualizations</h2>`;
-            tests.forEach(test => resultsHtml += createTestResultCard(test.name, test.fn(test.input)));
+            let html = `<div class="flex items-center justify-between mb-6 border-b border-slate-200 dark:border-slate-700 pb-4"><h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">Statistical Audit Results</h2><span class="text-sm text-slate-500 font-medium font-mono bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded">MODULUS: ${mod}</span></div>`;
+            tests.forEach(test => html += createTestCard(test.name, test.fn(test.input)));
+            testResultsContainer.innerHTML = html; testerPlaceholder.classList.add('hidden'); testResultsContainer.classList.remove('hidden');
             
-            testResultsContainer.innerHTML = resultsHtml;
-            testerPlaceholder.classList.add('hidden');
-            testResultsContainer.classList.remove('hidden');
-            
-            // Activate charts after they are in the DOM
-            tests.forEach(test => {
-                const result = test.fn(test.input);
-                if (result.canvasId === 'chi-square-chart') createChiSquareChart(normalizedNumbers);
-                if (result.canvasId === 'autocorrelation-chart') createAutocorrelationChart(normalizedNumbers);
-            });
+            tests.forEach(t => { const res = t.fn(t.input); if (res.canvasId === 'chart-chi') createBarChart(normalizedNumbers); if (res.canvasId === 'chart-auto') createScatterChart(normalizedNumbers); });
         }
 
-        function createTestResultCard(name, result) {
-            let statusText, statusColor, statusBgColor, icon;
-            if (result.passed === true) { statusText = 'Passed'; statusColor = 'text-green-700'; statusBgColor = 'bg-green-100'; icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`; }
-            else if (result.passed === false) { statusText = 'Failed'; statusColor = 'text-red-700'; statusBgColor = 'bg-red-100'; icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`; }
-            else { statusText = 'N/A'; statusColor = 'text-gray-700'; statusBgColor = 'bg-gray-100'; icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>`; }
-            
+        function createTestCard(name, res) {
+            let badge = res.passed === 'N/A' ? `<span class="bg-slate-200 text-slate-800 py-1 px-3 rounded-full text-xs font-semibold">N/A</span>`
+                        : res.passed ? `<span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 py-1 px-3 rounded-full text-xs font-bold shadow-sm inline-flex items-center"><svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>Passed</span>` 
+                        : `<span class="bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300 py-1 px-3 rounded-full text-xs font-bold shadow-sm inline-flex items-center"><svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>Failed</span>`;
+
             let detailsHtml = '';
-            for (const [key, value] of Object.entries(result.details)) {
-                detailsHtml += `<div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm"><strong class="font-medium text-gray-600 col-span-1">${key}:</strong> <span class="text-gray-800 col-span-2">${value}</span></div>`;
-            }
+            for (const [k, v] of Object.entries(res.details)) detailsHtml += `<div class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-b border-slate-100 dark:border-slate-700/50 pb-2 mb-2"><div class="text-slate-500 dark:text-slate-400 font-medium text-xs uppercase tracking-wider items-center flex">${k}</div><div class="sm:col-span-2 text-slate-800 dark:text-slate-200 text-sm font-mono break-words">${v}</div></div>`;
 
             return `
-                <div class="border border-gray-200 rounded-lg">
-                    <details>
-                        <summary class="p-4 flex items-center justify-between">
-                            <div class="flex items-center"><span class="arrow transition-transform duration-200 mr-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg></span><h3 class="text-md font-semibold text-gray-800">${name}</h3></div>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusBgColor} ${statusColor}">${icon}<span class="ml-2">${statusText}</span></span>
-                        </summary>
-                        <div class="p-4 border-t border-gray-200 bg-gray-50 space-y-3">
-                            <p class="text-sm text-gray-500 italic mb-3">${result.description}</p>
-                            ${detailsHtml}
-                            ${result.canvasId ? `<div class="mt-4 bg-white p-2 rounded-md shadow-inner"><canvas id="${result.canvasId}"></canvas></div>` : ''}
+            <div class="bg-white dark:bg-slate-800 border-l-4 ${res.passed === 'N/A' ? 'border-slate-300' : res.passed ? 'border-emerald-500' : 'border-rose-500'} border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+                <details class="group">
+                    <summary class="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition">
+                        <div class="flex items-center"><span class="arrow transition-transform w-5 h-5 text-slate-400 mr-2"><svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path></svg></span><span class="font-bold text-slate-700 dark:text-slate-200">${name}</span></div>
+                        ${badge}
+                    </summary>
+                    <div class="p-5 border-t border-slate-100 dark:border-slate-700">
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">${res.desc}</p>
+                        
+                        <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-3 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-lg border border-indigo-100 dark:border-indigo-800/50">
+                                <span class="block text-xs uppercase font-bold text-indigo-500 mb-1">Null Hypothesis (H₀)</span>
+                                <span class="text-sm text-slate-700 dark:text-slate-300">${res.hypothesis}</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                                <span class="block text-xs uppercase font-bold text-slate-500 mb-1">Threshold / Significance</span>
+                                <span class="text-sm font-mono text-slate-700 dark:text-slate-300">${res.threshold}</span>
+                            </div>
                         </div>
-                    </details>
-                </div>`;
-        }
-        
-        // --- Test Implementations ---
-        function frequencyTest(binaryString) {
-            const description = "Checks if the proportion of 0s and 1s is balanced.";
-            if (binaryString.length < 100) return { passed: 'N/A', description, details: { "Reason": "Not enough data (< 100 bits)." } };
-            const n = binaryString.length;
-            const ones = (binaryString.match(/1/g) || []).length;
-            const proportion = ones / n;
-            const passed = proportion > 0.45 && proportion < 0.55;
-            const details = {
-                "Null Hypothesis (H₀)": "The number of ones and zeros in the sequence is approximately the same.",
-                "Conclusion": `The proportion of ones was ${(proportion * 100).toFixed(2)}%. We ${passed ? 'fail to reject H₀' : 'reject H₀'} as the value ${passed ? 'is' : 'is not'} within the acceptable heuristic range.`,
-                "Calculated Proportion": `${(proportion * 100).toFixed(2)}%`,
-                "Acceptable Range": "45% - 55%"
-            };
-            return { passed, description, details };
+
+                        ${detailsHtml}
+                        <div class="mt-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg"><span class="block text-xs font-bold text-slate-500 uppercase mb-1">Methodology</span><span class="text-sm text-slate-600 dark:text-slate-400">${res.method}</span></div>
+                        ${res.canvasId ? `<div class="mt-6 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-700"><canvas id="${res.canvasId}"></canvas></div>` : ''}
+                    </div>
+                </details>
+            </div>`;
         }
 
-        function runsTest(binaryString) {
-            const description = "Analyzes the number of uninterrupted sequences (runs) of identical bits to detect clustering or oscillation.";
-            if (binaryString.length < 100) return { passed: 'N/A', description, details: { "Reason": "Not enough data (< 100 bits)." } };
-            const n = binaryString.length;
-            const pi = (binaryString.match(/1/g) || []).length / n;
-            if (Math.abs(pi - 0.5) >= 2 / Math.sqrt(n)) return { passed: false, description, details: { "Conclusion": "Test failed pre-requisite. The proportion of ones is too far from 50%." } };
-            let V = 1; for (let i = 0; i < n - 1; i++) if (binaryString[i] !== binaryString[i+1]) V++;
-            const P_value = erfc(Math.abs(V - (2 * n * pi * (1 - pi))) / (Math.sqrt(2 * n) * 2 * pi * (1-pi)));
-            const passed = P_value >= 0.01;
-            const details = {
-                "Null Hypothesis (H₀)": "The number of runs is as expected for a random sequence.",
-                "Conclusion": `The P-value is ${P_value.toExponential(4)}. Since P ${passed ? '≥' : '<'} 0.01, we ${passed ? 'fail to reject H₀' : 'reject H₀'}.`,
-                "Calculated P-value": P_value.toExponential(4),
-                "Significance Level (α)": "0.01",
-                "Observed Runs (V)": V
+        // Test Implementations Mapping
+        function frequencyTest(binStr) {
+            if (binStr.length < 100) return { passed: 'N/A', desc: "Checks proportion of 1s and 0s.", hypothesis:"Numbers are random", threshold:"-", method:"-", details: { "Reason": "Need >100 bits." } };
+            let ones = 0; for(let i=0; i<binStr.length; i++) if(binStr[i] === '1') ones++;
+            const prop = ones / binStr.length, passed = prop > 0.45 && prop < 0.55;
+            return { 
+                passed, desc: "Evaluates the strict balance of zeroes and ones in the sequence array mapping.",
+                hypothesis: "Sequence bits (1s and 0s) are inherently balanced evenly naturally (50%).",
+                threshold: "Proportion ∈ [0.45, 0.55]", method: "Calculates total ones divided by continuous binary length representation limit.",
+                details: { "Observed Proportion": `${(prop * 100).toFixed(2)}%`, "Conclusion": passed ? "Fail to reject H₀" : "Reject H₀" }
             };
-            return { passed, description, details };
-        }
-        
-        function erfc(x) { const z = Math.abs(x), t = 1 / (1 + 0.5 * z); const ans = t * Math.exp(-z*z - 1.26551223 + t*(1.00002368 + t*(0.37409196 + t*(0.09678418 + t*(-0.18628806 + t*(0.27886807 + t*(-1.13520398 + t*(1.48851587 + t*(-0.82215223 + t*0.17087277))))))))); return x >= 0 ? ans : 2 - ans; }
-
-        function chiSquareTest(normalizedNumbers) {
-            const description = "Compares the observed frequency of numbers against an expected uniform frequency.";
-            if (normalizedNumbers.length < 100) return { passed: 'N/A', description, details: { "Reason": "Not enough data (< 100 numbers)." } };
-            const k = 10, n = normalizedNumbers.length, observed = new Array(k).fill(0);
-            normalizedNumbers.forEach(num => { const bin = Math.floor(num * k); if(bin < k) observed[bin]++; });
-            const expected = n / k;
-            let chi2 = observed.reduce((sum, obs) => sum + Math.pow(obs - expected, 2) / expected, 0);
-            const df = k - 1, criticalValue = 16.919; // For α=0.05, df=9
-            const passed = chi2 <= criticalValue;
-            const details = {
-                "Null Hypothesis (H₀)": "The numbers are uniformly distributed.",
-                "Conclusion": `The χ² statistic is ${chi2.toFixed(4)}. Since this is ${passed ? 'less than or equal to' : 'greater than'} the critical value, we ${passed ? 'fail to reject H₀' : 'reject H₀'}.`,
-                "Chi-Square Statistic (χ²)": chi2.toFixed(4),
-                "Critical Value (α=0.05)": criticalValue,
-                "Parameters": `Degrees of Freedom = ${df}, Bins = ${k}`
-            };
-            return { passed, description, details, canvasId: 'chi-square-chart' };
-        }
-        
-        function autocorrelationTest(normalizedNumbers) {
-            const description = "Measures the dependency between a number and the one that follows it.";
-            if (normalizedNumbers.length < 100) return { passed: 'N/A', description, details: { "Reason": "Not enough data (< 100 numbers)." } };
-            const n = normalizedNumbers.length, lag = 1, M = n - lag;
-            let rho = 0; for (let i = 0; i < M; i++) rho += normalizedNumbers[i] * normalizedNumbers[i + lag];
-            rho = (12 / M) * rho - 3;
-            const Z = rho / Math.sqrt((13 * M + 7) / (12 * (M + 1)));
-            const criticalValue = 1.96; // For α = 0.05
-            const passed = Math.abs(Z) <= criticalValue;
-            const details = {
-                "Null Hypothesis (H₀)": "There is no autocorrelation between adjacent numbers.",
-                "Conclusion": `The Z-statistic is ${Z.toFixed(4)}. Since |Z| ${passed ? '≤' : '>'} ${criticalValue}, we ${passed ? 'fail to reject H₀' : 'reject H₀'}.`,
-                "Z-statistic": Z.toFixed(4),
-                "Critical Value (Z for α/2)": `±${criticalValue}`,
-                "Parameters": `Lag = ${lag}`
-            };
-            return { passed, description, details, canvasId: 'autocorrelation-chart' };
         }
 
-        function pokerTest(numbers) {
-            const description = "Groups numbers into 'poker hands' (digit patterns) to check if frequencies match expectation.";
-            if (numbers.length < 50) return { passed: 'N/A', description, details: { "Reason": "Not enough data (< 50 numbers)." } };
-            const d = 3, n = numbers.length;
-            const probs = [0.72, 0.27, 0.01], cats = ["All Different", "One Pair", "Three of a Kind"];
-            const observed = [0, 0, 0];
+        function runsTest(binStr) {
+            if (binStr.length < 100) return { passed: 'N/A', desc: "", hypothesis:"", threshold:"", method:"", details: { "Reason": "Need >100 bits." } };
+            const n = binStr.length; let ones = 0; for(let i=0; i<n; i++) if(binStr[i] === '1') ones++;
+            const pi = ones / n;
+            if (Math.abs(pi - 0.5) >= 2 / Math.sqrt(n)) return { passed: false, desc: "Analyzes bit oscillation.", hypothesis:"Bit cluster randomness.", threshold:"P ≥ 0.01", method:"-", details: { "Conclusion": "Failed prerequisite (proportion too imbalanced)." } };
+            let V = 1; for (let i=0; i<n-1; i++) if (binStr[i] !== binStr[i+1]) V++;
+            const z = Math.abs(V - (2*n*pi*(1-pi))) / (2*Math.sqrt(2*n)*pi*(1-pi)), pVal = Math.max(0, 1 - Math.erf(z / Math.SQRT2)), passed = pVal >= 0.01;
+            
+            return { 
+                passed, desc: "Checks adjacent bit clustering and switching rhythms to verify state progression isn't looping directly.",
+                hypothesis: "Bit state changes (oscillations) occur at an expected frequency without rigid patterns.",
+                threshold: "P-Value ≥ 0.01 (Significance Level α = 1%)", method: "Calculates the Z-factor relative to variance and checks against cumulative standard normal distribution (ERF).",
+                details: { "P-Value": pVal.toExponential(4), "Runs Detected (V)": V, "Conclusion": passed ? "Fail to reject H₀" : "Reject H₀" }
+            };
+        }
+
+        function chiSquareTest(norm) {
+            if (norm.length < 100) return { passed: 'N/A', desc: "", hypothesis:"", threshold:"", method:"", details: { "Reason": "Need >100 items." } };
+            const k = 10, n = norm.length, obs = new Array(k).fill(0);
+            norm.forEach(num => obs[Math.min(Math.floor(num * k), k - 1)]++);
+            const exp = n / k, chi2 = obs.reduce((sum, o) => sum + Math.pow(o - exp, 2) / exp, 0), passed = chi2 <= 16.919;
+            return { 
+                passed, desc: "Measures if generation hits evenly distributed 'buckets' ensuring continuous uniform coverage.",
+                hypothesis: "Values map entirely uniformly across 10 defined subdivisions.",
+                threshold: "Chi² Statistic ≤ 16.919 (df = 9, α = 0.05)", method: "Aggregates observations into fractional bins and standardizes the square discrepancies to derive a final X².",
+                details: { "Chi² Stat": chi2.toFixed(4), "Conclusion": passed ? "Fail to reject H₀" : "Reject H₀" }, canvasId: 'chart-chi' 
+            };
+        }
+
+        function autocorrelationTest(norm) {
+            if (norm.length < 100) return { passed: 'N/A', desc: "", hypothesis:"", threshold:"", method:"", details: { "Reason": "Need >100 items." } };
+            const M = norm.length - 1; let rho = 0; for (let i = 0; i < M; i++) rho += norm[i] * norm[i + 1];
+            rho = (12 / M) * rho - 3; const Z = rho / Math.sqrt((13 * M + 7) / (12 * (M + 1))), passed = Math.abs(Z) <= 1.96;
+            return { 
+                passed, desc: "Identifies cyclical relationships or linear predictions from previous iterations.",
+                hypothesis: "Numbers iterate entirely independent from the preceding value.",
+                threshold: "|Z| ≤ 1.96 (Confidence 95%)", method: "Lag operation checks the mathematical linkage (rho multiplier) of U(i) correlating with U(i+1) generating Pearson limits.",
+                details: { "Z Stat": Z.toFixed(4), "Conclusion": passed ? "Fail to reject H₀" : "Reject H₀" }, canvasId: 'chart-auto' 
+            };
+        }
+
+        function pokerTest(dataObj) {
+            const numbers = dataObj.raw; if (numbers.length < 50) return { passed: 'N/A', desc: "", hypothesis:"", threshold:"", method:"", details: { "Reason": "Need >50 items." } };
+            const obs = [0, 0, 0];
             numbers.forEach(num => {
-                const s = String(num % 1000).padStart(d, '0'), counts = {};
-                for(const digit of s) counts[digit] = (counts[digit] || 0) + 1;
-                const values = Object.values(counts);
-                if (values.length === 3) observed[0]++; else if (values.includes(2)) observed[1]++; else if (values.includes(3)) observed[2]++;
+                let target = dataObj.isFloat ? num * 1000 : num;
+                const last3 = Math.floor(Math.abs(target)) % 1000;
+                const s = String(last3).padStart(3, '0'); const counts = {}; for(let char of s) counts[char] = (counts[char] || 0) + 1;
+                const v = Object.values(counts); if (v.length === 3) obs[0]++; else if (v.includes(2)) obs[1]++; else obs[2]++;
             });
-            let chi2 = 0;
-            for (let i = 0; i < probs.length; i++) { const expected = n * probs[i]; chi2 += Math.pow(observed[i] - expected, 2) / expected; }
-            const df = cats.length - 1, criticalValue = 5.991; // For α=0.05, df=2
-            const passed = chi2 <= criticalValue;
-            const details = {
-                "Null Hypothesis (H₀)": "The frequencies of digit patterns are as expected for a random sequence.",
-                "Conclusion": `The χ² statistic is ${chi2.toFixed(4)}. Since this is ${passed ? 'less than or equal to' : 'greater than'} the critical value, we ${passed ? 'fail to reject H₀' : 'reject H₀'}.`,
-                "Chi-Square Statistic (χ²)": chi2.toFixed(4),
-                "Critical Value (α=0.05)": criticalValue
+            const exp = [numbers.length * 0.72, numbers.length * 0.27, numbers.length * 0.01];
+            let chi2 = 0; for(let i=0; i<3; i++) chi2 += Math.pow(obs[i] - exp[i], 2) / exp[i];
+            const passed = chi2 <= 5.991;
+            return { 
+                passed, desc: "Evaluates if strings of digits contain combinatorial combinations expected of random structures.",
+                hypothesis: "Categorical combinations (Pairs, Triplets) obey deterministic standard probabilities (72% All Different, etc).",
+                threshold: "Chi² Statistic ≤ 5.991 (df = 2, α = 0.05)", method: "Sub-samples 3 decimals directly mapping into Poker Hands structure and deriving Chi Square against true probability rates.",
+                details: { "Chi² Stat": chi2.toFixed(4), "Conclusion": passed ? "Fail to reject H₀" : "Reject H₀" } 
             };
-            return { passed, description, details };
         }
-        
-        // --- Charting Functions ---
-        function createChiSquareChart(normalizedNumbers) {
-            const ctx = document.getElementById('chi-square-chart');
-            if (!ctx) return;
-            const k = 10, n = normalizedNumbers.length, observed = new Array(k).fill(0);
-            normalizedNumbers.forEach(num => { const bin = Math.floor(num * k); if(bin < k) observed[bin]++; });
-            const expected = n / k;
-            const labels = Array.from({length: k}, (_, i) => `${(i/k).toFixed(1)}-${((i+1)/k).toFixed(1)}`);
-            
-            const chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Observed Frequency', data: observed, backgroundColor: 'rgba(79, 70, 229, 0.6)', borderColor: 'rgba(79, 70, 229, 1)', borderWidth: 1 },
-                        { label: 'Expected Frequency', data: new Array(k).fill(expected), type: 'line', fill: false, borderColor: 'rgba(217, 70, 239, 1)', tension: 0.1, pointRadius: 0 }
-                    ]
-                },
-                options: { scales: { y: { beginAtZero: true, title: { display: true, text: 'Frequency' } }, x: { title: { display: true, text: 'Bins' } } }, responsive: true, maintainAspectRatio: true }
-            });
+
+        // Charts
+        Math.erf = function(x) { const a1=0.254829592, a2=-0.284496736, a3=1.421413741, a4=-1.453152027, a5=1.061405429, p=0.3275911; const sign=x<0?-1:1; x=Math.abs(x); const t=1.0/(1.0+p*x), y=1.0-(((((a5*t+a4)*t)+a3)*t+a2)*t+a1)*t*Math.exp(-x*x); return sign*y; };
+
+        function createBarChart(norm) {
+            const ctx = document.getElementById('chart-chi'); if(!ctx) return;
+            const k = 10, obs = new Array(k).fill(0); norm.forEach(n => obs[Math.min(Math.floor(n * k), k - 1)]++);
+            const chart = new Chart(ctx, { type: 'bar', data: { labels: Array.from({length:10}, (_,i) => `0.${i}`), datasets: [{ label: 'Observed', data: obs, backgroundColor: '#6366f1', borderRadius: 4 }, { label: 'Expected', data: Array(k).fill(norm.length/k), type: 'line', borderColor: '#f43f5e', fill: false, tension: 0.1, pointRadius: 0 }] }, options: { scales: { y: { beginAtZero: true, grid: { color: 'rgba(150, 150, 150, 0.1)' } }, x: { grid: { display: false } } }, responsive:true, plugins: { legend: { position: 'bottom' } } } });
             activeCharts.push(chart);
         }
 
-        function createAutocorrelationChart(normalizedNumbers) {
-            const ctx = document.getElementById('autocorrelation-chart');
-            if (!ctx) return;
-            const data = [];
-            for (let i = 0; i < normalizedNumbers.length - 1; i++) {
-                data.push({ x: normalizedNumbers[i], y: normalizedNumbers[i + 1] });
-            }
-            
-            const chart = new Chart(ctx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'R(i) vs R(i+1)',
-                        data: data,
-                        backgroundColor: 'rgba(79, 70, 229, 0.6)',
-                        pointRadius: 2
-                    }]
-                },
-                options: {
-                    scales: {
-                        x: { type: 'linear', position: 'bottom', title: { display: true, text: 'R(i)' } },
-                        y: { title: { display: true, text: 'R(i+1)' } }
-                    },
-                    plugins: { legend: { display: false } },
-                    responsive: true,
-                    maintainAspectRatio: true
-                }
-            });
+        function createScatterChart(norm) {
+            const ctx = document.getElementById('chart-auto'); if(!ctx) return;
+            const pts = []; for(let i=0; i<Math.min(norm.length-1, 1000); i++) pts.push({x: norm[i], y: norm[i+1]});
+            const chart = new Chart(ctx, { type: 'scatter', data: { datasets: [{ label: 'R(i) vs R(i+1) (First 1k)', data: pts, backgroundColor: '#6366f1', pointRadius: 2, pointHoverRadius: 4 }] }, options: { scales: { x: { grid: { color: 'rgba(150, 150, 150, 0.1)' }}, y: { grid: { color: 'rgba(150, 150, 150, 0.1)' }} }, responsive:true, plugins: { legend: { display: false } } } });
             activeCharts.push(chart);
         }
-
     </script>
 </body>
 </html>
