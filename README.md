@@ -1,25 +1,25 @@
-# PRNG-toolkit
-A web-based tool to generate, test, and visualize pseudo-random numbers using various algorithms and statistical tests.
-RNG-Suite is a comprehensive, single-file web application designed for generating, analyzing, and visualizing pseudo-random numbers. It provides a user-friendly interface to explore different generation algorithms, perform rigorous statistical tests on the output, and understand the quality of the generated sequences. This tool is perfect for educational purposes, simulations, and for anyone interested in the practical aspects of random number generation.
-<img width="1452" height="959" alt="image" src="https://github.com/user-attachments/assets/28292e32-04eb-401e-8d5a-1a6b1ba4854b" />
+# PRNG Toolkit
+
+A modern, educational web-based tool to generate, test, and visualize pseudo-random numbers using various algorithms and rigorous statistical tests. 
+
+PRNG Toolkit provides a warm, user-friendly interface to explore different generation algorithms, perform strict hypothesis tests on the output, and fundamentally understand the quality of generated sequences. Originally built as a vital testing hub for a university Modeling and Simulation course, it is perfect for students, developers needing valid data for simulations, and anyone interested in the math behind computer randomness!
 
 ## ✨ Features
 
-- **Multiple Generation Algorithms**:
-  - **Linear Congruential Generator (LCG)**: With presets from famous implementations (`Numerical Recipes`, `glibc`, `Java`) and custom parameter inputs.
-  - **Middle-Square**: A classic algorithm by John von Neumann.
-  - **Xorshift**: A fast and high-quality generator.
+- **Advanced Generation Algorithms**:
+  - **Mersenne Twister (MT19937)**: The gold standard for modern PRNG, featuring a massive period of $2^{19937}-1$.
+  - **Permuted Congruential Generator (PCG32)**: A highly modern algorithm offering excellent speed and perfect statistical performance.
+  - **Linear Congruential Generator (LCG)**: A classic algorithm with presets from famous implementations (`Numerical Recipes`, `glibc`, `Java`) and custom parameter inputs.
+  - **Middle-Square**: The historical algorithm by John von Neumann for educational comparison.
 
 - **Flexible Generation Options**:
-  - Generate a specific quantity of numbers with presets or custom amounts.
-  - Manual or automatic seed generation.
-  - **Configurable Auto-Seed**: Set the desired digit length for automatically generated seeds, crucial for methods like Middle-Square.
+  - Configurable Auto-Seed with desired digit length.
+  - Fast generation engines capable of processing thousands of numbers.
+  - Configuration management (Save, load, and reset your generator settings).
 
-<img width="1518" height="926" alt="image" src="https://github.com/user-attachments/assets/d59cc409-a653-4046-ab9b-9915c5598ceb" />
-
-- **Comprehensive Statistical Testing**:
+- **Comprehensive Statistical Testing (Hypothesis Testing)**:
   - **Test Your Own Data**: Upload a `.csv`, `.xlsx`, or `.txt` file with your own numbers for analysis.
-  - **Formal Hypothesis Testing**: Each test result is presented with a Null Hypothesis (H₀) and a clear conclusion (e.g., "Fail to reject H₀").
+  - **Formal Hypothesis Testing**: Each test result is presented with a Null Hypothesis ($H_0$), P-Value thresholds, and a clear step-by-step conclusion (e.g., "Reject $H_0$").
   - **Included Tests**:
     - Frequency Test (Monobit)
     - Runs Test
@@ -29,35 +29,37 @@ RNG-Suite is a comprehensive, single-file web application designed for generatin
 
 - **Insightful Visualizations**:
   - **Histogram**: Visually check for number uniformity with the Chi-Square test results.
-  - **Scatter Plot**: Analyze number independence by plotting `R(i)` vs `R(i+1)` in the Autocorrelation test.
+  - **Scatter Plot**: Analyze number independence by plotting $R_i$ vs $R_{i+1}$ in the Autocorrelation test.
 
-- **User-Friendly Interface**:
-  - **Multi-tab Layout**: Separate panels for Generation, Testing/Visualization, and Information.
-  - **Tooltips & Guides**: Helpful information about parameters and file formats.
-  - **Configuration Management**: Save, load, and reset your generator settings to easily replicate experiments.
+- **Warm & Educational Interface**:
+  - **MathJax Integration**: Beautifully renders LaTeX math formulas ($X_{n+1}$, $\chi^2$, etc.) directly in the browser so you can learn the exact math behind the magic.
+  - **Fully Responsive & Accessible**: Follows a strict 8pt grid with high-contrast elements.
+  - **Dark Mode**: Comes out of the box with a beautiful, eye-relieving dark mode!
+  - **Multi-tab Layout**: Separate panels for Generator, Statistical Tester, and Educational sections.
 
 - **Versatile Export Options**:
   - Download generated numbers as `.csv`, `.xlsx`, or `.txt`.
-  - Choose between `Raw` integer output or `Normalized` (0-1) floating-point values.
+  - Choose between Raw integer output or Normalized (0-1) floating-point values.
 
 ## 🚀 How to Use
 
-This is a single-file application with no dependencies or build steps required.
+The application is completely front-end! No build steps or frameworks required.
 
-1.  **Download**: Download the `index.html` file from this repository.
-2.  **Open**: Open the `index.html` file in any modern web browser (like Chrome, Firefox, or Edge).
+1.  **Clone or Download** this repository.
+2.  Open the `index.html` file in any modern web browser (like Chrome, Firefox, or Safari).
+    - *Alternatively, serve it locally using live-server or a simple Python static server `python -m http.server 8000`.*
 3.  **Generate & Test**:
-    - Select a generation method and configure its parameters on the **Generator** tab.
+    - Select a generation method on the **Generator** tab.
     - Click **"Generate & Test"**.
-    - View the results and charts on the **Tester & Visualizer** tab.
+    - Watch the numbers populate and head to the **Tester & Visualizer** tab to see if your algorithm passed the audit!
 
 ## 🛠️ Technologies Used
 
--   **HTML5**
--   **Tailwind CSS**: For a clean and responsive UI.
--   **JavaScript (ES6+)**: For all logic and functionality.
--   **Chart.js**: For creating interactive charts and visualizations.
--   **SheetJS (xlsx.js)**: For parsing and creating `.xlsx` files.
+-   **HTML5 & Vanilla JavaScript (ES6+)**: Decoupled, clean architecture (`app.js` runs the heavy statistical logic).
+-   **Tailwind CSS**: For the stunning, accessible, dark-mode native UI.
+-   **MathJax**: To elegantly render mathematical formulas.
+-   **Chart.js**: For creating interactive dynamic charts.
+-   **SheetJS**: For parsing and creating `.xlsx` files without backend processing.
 
 ## 🤝 Contributing
 
